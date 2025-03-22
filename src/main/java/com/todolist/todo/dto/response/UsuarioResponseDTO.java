@@ -17,4 +17,5 @@ public class UsuarioResponseDTO {
     private String username;
     private List<TareaResumenDTO> tareas;
     private Set<CategoriaResumeDTO> categorias;
+    private boolean requiereLogin;
 }

@@ -6,19 +6,19 @@ import com.todolist.todo.model.Tarea;
 import com.todolist.todo.model.Usuario;
 import com.todolist.todo.repository.UsuarioRepository;
 import com.todolist.todo.utility.GenericoDTOConverter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final GenericoDTOConverter genericoDTOConverter;
-    public UsuarioService(UsuarioRepository usuarioRepository, GenericoDTOConverter genericoDTOConverter) {
-        this.usuarioRepository = usuarioRepository;
-        this.genericoDTOConverter = genericoDTOConverter;
-    }
+    private final AuthService authService;
+
     public List<Usuario> obtenerTodosUsuarios(){
         return usuarioRepository.findAll();
     }
@@ -29,12 +29,13 @@ public class UsuarioService {
             .orElseThrow(()->new RecursoNoEncontradoException("No se encontró el usuario con el id: "+id));
     }
     public Usuario guardarUsuario(Usuario usuario){
-        return usuarioRepository.save(usuario);
+        return authService.registrarUsuario(usuario);
     }
     public void eliminarUsuario(Long id){
         if(!usuarioRepository.existsById(id)) throw new RecursoNoEncontradoException("No se encontro el usuario con el id: "+id);
         usuarioRepository.deleteById(id);
     }
+    //Reparar cuando actualiza el username
     public Usuario actualizarUsuario(Long id,Usuario usuario){
         return usuarioRepository.findById(id).map(_tarea->{
             _tarea.setNombre(usuario.getNombre()==null?_tarea.getNombre():usuario.getNombre());

@@ -3,10 +3,11 @@ package com.todolist.todo.service;
 import com.todolist.todo.dto.request.LoginRequestDTO;
 import com.todolist.todo.dto.request.RegistroUsuarioRequestDTO;
 import com.todolist.todo.dto.response.JwtResponseDTO;
-import com.todolist.todo.enumerator.TipoRol;
 import com.todolist.todo.exception.CredencialExpiradaException;
 import com.todolist.todo.exception.UsuarioExistenteException;
+import com.todolist.todo.model.Rol;
 import com.todolist.todo.model.Usuario;
+import com.todolist.todo.repository.RolRepository;
 import com.todolist.todo.repository.UsuarioRepository;
 import com.todolist.todo.security.JwtService;
 import jakarta.annotation.PostConstruct;
@@ -32,20 +33,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-
-    @PostConstruct
-    public void inicializarUsuarioAdmin(){
-        if(usuarioRepository.findByUsername("admin").isEmpty()){
-            Usuario admin = new Usuario();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setEmail("admin@email.com");
-            admin.setNombre("Santiago");
-            admin.setApellido("Rodriguez Bone");
-            admin.setRoles(Set.of(TipoRol.ADMIN));
-            usuarioRepository.save(admin);
-        }
-    }
+    private final RolService rolService;
+    private final VerificacionService verificacionService;
 
     public Usuario registrarUsuario(Usuario usuario) {
         if(usuarioRepository.findByUsername(usuario.getUsername()).isPresent()){
@@ -60,8 +49,10 @@ public class AuthService {
         nuevoUsuario.setEmail(usuario.getEmail());
         nuevoUsuario.setNombre(usuario.getNombre());
         nuevoUsuario.setApellido(usuario.getApellido());
-        nuevoUsuario.setRoles(Set.of(TipoRol.USER));
-        return usuarioRepository.save(nuevoUsuario);
+        nuevoUsuario.getRoles().add(rolService.crearObtenerRol("USER"));
+        Usuario usuarioGuardado=usuarioRepository.save(nuevoUsuario);
+        verificacionService.enviarEmailVerificacion(usuarioGuardado);
+        return usuarioGuardado;
     }
 
     public JwtResponseDTO login(LoginRequestDTO loginRequestDTO) {

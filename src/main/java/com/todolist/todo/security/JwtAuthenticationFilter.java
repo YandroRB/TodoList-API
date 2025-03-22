@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 
 @Component
 public class JwtAuthenticationFilter  extends OncePerRequestFilter {
@@ -25,6 +26,7 @@ public class JwtAuthenticationFilter  extends OncePerRequestFilter {
     private final UserDetailsServiceImpl userDetailsService;
     public JwtAuthenticationFilter(final JwtService jwtService,
                                    final UserDetailsServiceImpl userDetailsService) {
+
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
@@ -76,13 +78,7 @@ public class JwtAuthenticationFilter  extends OncePerRequestFilter {
             response.getWriter().flush();
             return;
         }
-        catch (Exception e) {
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("{\"mensaje\":\"Error en la validacion del token\"}");
-            response.getWriter().flush();
-            return;
-        }
         filterChain.doFilter(request, response);
+
     }
 }

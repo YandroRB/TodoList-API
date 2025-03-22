@@ -28,28 +28,28 @@ public class CategoriaController {
         this.genericoDTOConverter = genericoDTOConverter;
     }
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasAuthority('CATEGORIA_LEER')")
     public List<CategoriaResumeDTO> obtenerCategoriasPorUsuario(Authentication authentication) {
         String username = authentication.getName();
         List<Categoria> categorias= categoriaService.obtenerCategoriasPorUsuario(username);
         return genericoDTOConverter.convertirListADTO(categorias,CategoriaResumeDTO.class);
     }
     @GetMapping("/{id_tarea}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea," +
+    @PreAuthorize("hasAuthority('CATEGORIA_TAREA_LEER') or hasAuthority('CATEGORIA_TAREA_USUARIO_LEER') and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea," +
             "authentication.name)")
     public List<CategoriaResumeDTO> obtenerCategoriasPorTarea(@PathVariable Long id_tarea){
         List<Categoria> categorias=categoriaService.obtenerCategoriasTarea(id_tarea);
         return genericoDTOConverter.convertirListADTO(categorias,CategoriaResumeDTO.class);
     }
     @DeleteMapping("/{id_categoria}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
+    @PreAuthorize("hasAuthority('CATEGORIA_ID_ELIMINAR') or hasAuthority('CATEGORIA_ID_USUARIO_ELIMINAR' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
             "authentication.name))")
     public ResponseEntity<?> eliminarCategoria(@PathVariable Long id_categoria){
         categoriaService.eliminarCategoria(id_categoria);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @PutMapping("/{id_categoria}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
+    @PreAuthorize("hasAuthority('CATEGORIA_ID_ACTUALIZAR') or hasAuthority('CATEGORIA_ID_USUARIO_ACTUALIZAR' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
             "authentication.name))")
     public ResponseEntity<CategoriaResumeDTO> actualizarCategoria(@PathVariable Long id_categoria,
                                                                   @Valid @RequestBody CategoriaRequestDTO categoria,
@@ -66,7 +66,7 @@ public class CategoriaController {
         return new ResponseEntity<>(categoriaResponse,HttpStatus.OK);
     }
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasAuthority('CATEGORIA_CREAR')")
     public ResponseEntity<CategoriaResumeDTO> guardarCategoria(Authentication authentication,
                                                                @Valid @RequestBody CategoriaRequestDTO categoria,
                                                                BindingResult result){

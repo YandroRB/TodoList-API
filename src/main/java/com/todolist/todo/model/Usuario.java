@@ -1,6 +1,6 @@
 package com.todolist.todo.model;
 
-import com.todolist.todo.enumerator.TipoRol;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -37,10 +37,20 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "roles_usuario",joinColumns = @JoinColumn(name = "usuario_id"))
-    @Column(name = "rol")
-    private Set<TipoRol> roles = new HashSet<>();
+    @Column
+    private boolean cuentaVerificada = false;
+
+    @Column
+    private String tokenVerificacion;
+
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "roles_usuarios",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "rol_id")
+    )
+    private Set<Rol> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Tarea> tareas=new ArrayList<>();
@@ -49,7 +59,8 @@ public class Usuario implements UserDetails {
     @OneToMany(mappedBy = "usuario",cascade = CascadeType.ALL,orphanRemoval = true)
     private Set<Categoria> categorias=new HashSet<>();
 
-    public void addTarea(Tarea tarea) {
+
+    public void addTarea(Tarea tarea){
         this.tareas.add(tarea);
         tarea.setUsuario(this);
     }
@@ -70,7 +81,14 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream().map(rol->new SimpleGrantedAuthority("ROLE_"+rol.name())).toList();
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        for(Rol rol:roles){
+            authorities.add(new SimpleGrantedAuthority("ROLE_"+rol.getNombreRol()));
+            for (Permiso permiso: rol.getPermisos()){
+                authorities.add(new SimpleGrantedAuthority(permiso.getNombrePermiso()));
+            }
+        }
+        return authorities;
     }
     @Override
     public boolean isAccountNonExpired() {

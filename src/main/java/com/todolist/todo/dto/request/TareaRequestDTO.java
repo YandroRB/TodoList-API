@@ -1,6 +1,7 @@
 package com.todolist.todo.dto.request;
 
 import com.todolist.todo.enumerator.EstadoTarea;
+import com.todolist.todo.enumerator.PrioridadTarea;
 import jakarta.persistence.PrePersist;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,9 @@ public class TareaRequestDTO {
     @NotBlank(message = "La descripcion es obligatoria")
     private String descripcion;
     private EstadoTarea estado;
+    private PrioridadTarea prioridad;
 
     public boolean tieneCampos(){
-        return titulo!=null || descripcion!=null || estado!=null;
+        return titulo!=null || descripcion!=null || estado!=null|| prioridad!=null;
     }
 }

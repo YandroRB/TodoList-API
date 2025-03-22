@@ -1,5 +1,6 @@
 package com.todolist.todo.dto.response;
 import com.todolist.todo.enumerator.EstadoTarea;
+import com.todolist.todo.enumerator.PrioridadTarea;
 import lombok.Data;
 
 import java.util.List;
@@ -11,4 +12,5 @@ public class TareaResumenDTO {
     private String titulo;
     private String descripcion;
     private EstadoTarea estado;
+    private PrioridadTarea prioridad;
 }

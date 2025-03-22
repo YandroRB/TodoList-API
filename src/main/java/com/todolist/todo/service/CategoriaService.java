@@ -1,5 +1,6 @@
 package com.todolist.todo.service;
 
+import com.todolist.todo.exception.EntradaInvalidaException;
 import com.todolist.todo.exception.RecursoNoEncontradoException;
 import com.todolist.todo.model.Categoria;
 import com.todolist.todo.model.Tarea;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class CategoriaService {
@@ -62,8 +62,10 @@ public class CategoriaService {
         return tareaRepository.save(tarea);
     }
     public Categoria guardarCategoria(String username,Categoria categoria) {
+        if(categoriaRepository.existsByNombre(categoria.getNombre())) throw new EntradaInvalidaException("La etiqueta "+categoria.getNombre()+" ya existe");
         Optional<Usuario> usuario = usuarioRepository.findByUsername(username);
         categoria.setUsuario(usuario.orElseThrow(()-> new RecursoNoEncontradoException("No se encontro el usuario")));
+
         return categoriaRepository.save(categoria);
     }
 

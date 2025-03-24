@@ -151,6 +151,8 @@ public class DatosInitializer implements CommandLineRunner {
                 "Obtiene todos los permisos");
         permisoService.crearObtenerPermiso("ASIGNAR_PERMISO_ROL",
                 "Asigna un permiso a un rol en especifico");
+        permisoService.crearObtenerPermiso("ELIMINAR_PERMISO_ROL",
+                "Quita permiso a un rol en especifico");
 
         //Rol
         permisoService.crearObtenerPermiso("ROLES_TODOS_LEER",

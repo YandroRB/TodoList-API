@@ -1,5 +1,8 @@
 package com.todolist.todo.enumerator;
 
+import lombok.Getter;
+
+@Getter
 public enum PrioridadTarea {
     BAJA(0),
     MEDIA(1),
@@ -9,8 +12,5 @@ public enum PrioridadTarea {
     private final int valor;
     PrioridadTarea(int valor){
         this.valor = valor;
-    }
-    public int getValor(){
-        return valor;
     }
 }

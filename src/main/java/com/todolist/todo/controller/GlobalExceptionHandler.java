@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         detalleError.put("detalle",request.getDescription(false));
         return new ResponseEntity<>(detalleError, HttpStatus.FORBIDDEN);
     }
-
+/*
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> credencialExpiradaException(RuntimeException e, WebRequest request) {
         Map<String,Object> detalleError=new HashMap<>();
@@ -69,4 +69,5 @@ public class GlobalExceptionHandler {
         detalleError.put("detalle",request.getDescription(false));
         return new ResponseEntity<>(detalleError, HttpStatus.FORBIDDEN);
     }
+*/
 }

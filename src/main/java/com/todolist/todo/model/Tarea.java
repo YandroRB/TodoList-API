@@ -1,6 +1,5 @@
 package com.todolist.todo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.todolist.todo.enumerator.EstadoTarea;
 import com.todolist.todo.enumerator.PrioridadTarea;
 import jakarta.persistence.*;
@@ -22,24 +21,35 @@ import java.util.Set;
 @Data
 @Audited
 @NoArgsConstructor
-@EqualsAndHashCode(of={"identificador","titulo","descripcion","estado","fechaLimite","recordatorioActivado","diasAnticipadosRecordatorio"})
+@EqualsAndHashCode(of={"identificador","titulo","descripcion","estado"})
 public class Tarea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long identificador;
+
     @NotBlank
     private String titulo;
+
     @NotBlank
     private String descripcion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoTarea estado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PrioridadTarea prioridad;
+
     @Column
     private LocalDateTime fechaLimite;
+
     @Column(nullable = false)
     private boolean recordatorioActivado=false;
+
     @Column(nullable = false)
     private Integer diasAnticipadosRecordatorio=1;
+
     @ManyToOne()
     @NotAudited
     //@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
@@ -55,22 +65,28 @@ public class Tarea {
     )
     private Set<Usuario> usuariosCompartidos=new HashSet<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PrioridadTarea prioridad;
+
+
     @Column(nullable = false)
     private int prioridadValor;
 
     @Column(nullable = false)
     private Integer nivel=0;
+
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
     @JoinColumn(name = "tarea_padre_id")
     private List<Tarea> subTarea=new ArrayList<>();
 
 
-    public void setPrioridadTarea(PrioridadTarea prioridad) {
-        this.prioridad = prioridad;
-        this.prioridadValor=prioridad.getValor();
+    public void setPrioridad(PrioridadTarea prioridad) {
+        if(prioridad!=null){
+            this.prioridad = prioridad;
+            this.prioridadValor=prioridad.getValor();
+        }
+        else {
+            this.prioridadValor=0;
+            this.prioridad=null;
+        }
     }
 
     @ManyToMany
@@ -81,13 +97,15 @@ public class Tarea {
             inverseJoinColumns = @JoinColumn(name="categoria_id")
     )
     private Set<Categoria> categorias=new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
-        if(estado==null)estado=EstadoTarea.PENDIENTE;
         if(prioridad==null){
             prioridad=PrioridadTarea.MEDIA;
             prioridadValor=PrioridadTarea.MEDIA.getValor();
         }
+        if(estado==null)estado=EstadoTarea.PENDIENTE;
+
     }
 
     public void compartirCon(Usuario usuario){

@@ -72,14 +72,16 @@ public class TareaController {
         List<Tarea> tareas= tareaService.obtenerTodasTareas();
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
     }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('TAREA_ID_LEER') or hasAuthority('TAREA_ID_USUARIO_LEER') and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id," +
+    @PreAuthorize("hasAuthority('TAREA_ID_LEER') or hasAuthority('TAREA_ID_USUARIO_LEER') and @tareaRepository.existByIdentificadorAndUsername(#id," +
             "authentication.name)")
     public ResponseEntity<TareaResumenDTO> obtenerTareaPorId(@PathVariable Long id) {
         Tarea tarea = tareaService.obtenerTarea(id);
         TareaResumenDTO tareaResponse= genericoDTOConverter.convertirADTO(tarea, TareaResumenDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @GetMapping("/categorias")
     @PreAuthorize("hasAuthority('TAREA_CATEGORIA_LEER') or hasAuthority('TAREA_USUARIO_CATEGORIA_LEER')and @categoriaRepository.existsByNombreAndUsuarioUsername(#categoria," +
             "authentication.name)")
@@ -89,6 +91,7 @@ public class TareaController {
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
 
     }
+
     @GetMapping("/compartidas")
     @PreAuthorize("hasAuthority('TAREAS_COMPARTIDAS_LEER')")
     public List<TareaResponseDTO> obtenerTareasCompartidas(Authentication authentication) {
@@ -96,6 +99,7 @@ public class TareaController {
         List<Tarea> tareas = tareaService.obtenerTareasCompartidas(username);
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
     }
+
     @DeleteMapping("/{id_tarea}/categorias/{id_categoria}")
     @PreAuthorize("hasAuthority('TAREA_CATEGORIA_ELIMINAR') or hasAuthority('TAREA_USUARIO_CATEGORIA_ELIMINAR') and " +
             "@tareaRepository.existsByIdentificadorAndCategoriasIdentificadorAndUsuarioUsername(#id_tarea,#id_categoria," +
@@ -105,31 +109,37 @@ public class TareaController {
         TareaResponseDTO tareaResponse= genericoDTOConverter.convertirADTO(tarea, TareaResponseDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @DeleteMapping("/{id_tarea}/subtarea/{id_sub}")
     @PreAuthorize("hasAuthority('TAREA_SUBTAREA_ELIMINAR') or hasAuthority('TAREA_USUARIO_SUBTAREA_ELIMINAR' and" +
-            " @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea,authentication.name))")
+            " @tareaRepository.existByIdentificadorAndUsername(#id_tarea,authentication.name))")
     public ResponseEntity<Void> eliminarSubTarea(@PathVariable Long id_tarea, @PathVariable Long id_sub) {
         tareaService.eliminarsubTarea(id_tarea, id_sub);
         return ResponseEntity.noContent().build();
     }
+
     @PostMapping
     @PreAuthorize("hasAuthority('TAREA_GUARDAR')")
-    public ResponseEntity<TareaResumenDTO> guardarTarea(@Valid @RequestBody TareaRequestDTO tarea, BindingResult result,Authentication authentication) {
+    public ResponseEntity<TareaResumenDTO> guardarTarea(@Valid @RequestBody TareaRequestDTO tarea,
+                                                        BindingResult result,Authentication authentication) {
+
         if(result.hasErrors()){
             String err=result.getFieldErrors().stream()
                     .map(error->"Campo '"+error.getField()+"' : "+error.getDefaultMessage())
                     .collect(Collectors.joining("; "));
             throw new EntradaInvalidaException("Error al guardar la tarea: "+err);
         }
+
         Tarea tareaNueva=genericoDTOConverter.convertirAEntidad(tarea,Tarea.class);
         Tarea tareaGuardada=tareaService.guardarTarea(authentication.getName(),tareaNueva);
         TareaResumenDTO tareaResponse=genericoDTOConverter.convertirADTO(tareaGuardada,TareaResumenDTO.class);
         return new ResponseEntity<>(tareaResponse, HttpStatus.CREATED);
     }
+
     @PostMapping("/{id_tarea}/subtarea")
     @PreAuthorize("hasAuthority('TAREA_SUBTAREA_GUARDAR')" +
             " or (hasAuthority('TAREA_SUBTAREA_USUARIO_GUARDAR')and" +
-            "@tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea,authentication.name))")
+            "@tareaRepository.existByIdentificadorAndUsername(#id_tarea,authentication.name))")
     public ResponseEntity<TareaResponseDTO> guardarSubTarea(@PathVariable Long id_tarea,@Valid @RequestBody TareaRequestDTO tareaRequestDTO, BindingResult result) {
         if (!result.hasFieldErrors()) {
             Tarea tareaRequest = genericoDTOConverter.convertirAEntidad(tareaRequestDTO, Tarea.class);
@@ -206,7 +216,7 @@ public class TareaController {
 
     @PatchMapping("/{id_tarea}/subtarea/{id_sub}")
     @PreAuthorize("hasAuthority('TAREA_SUBTAREA_ACTUALIZAR') or hasAuthority('TAREA_USUARIO_SUBTAREA_ACTUALIZAR' and" +
-            " @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea,authentication.name))")
+            " @tareaRepository.existByIdentificadorAndUsername(#id_tarea,authentication.name))")
     public ResponseEntity<TareaResponseDTO> actualizarSubTarea(@PathVariable Long id_tarea,
                                                               @PathVariable Long id_sub,
                                                               @Valid @RequestBody TareaRequestDTO tarea,
@@ -257,7 +267,7 @@ public class TareaController {
     }
 
     @PatchMapping("/{id}/estado/{estado}")
-    @PreAuthorize("hasAuthority('TAREA_ESTADO_ACTUALIZAR') or hasAuthority('TAREA_USUARIO_ESTADO_ACTUALIZAR')and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id," +
+    @PreAuthorize("hasAuthority('TAREA_ESTADO_ACTUALIZAR') or hasAuthority('TAREA_USUARIO_ESTADO_ACTUALIZAR')and @tareaRepository.existByIdentificadorAndUsername(#id," +
             "authentication.name)")
     public ResponseEntity<TareaResumenDTO> actualizarEstadoTarea(@PathVariable Long id,
                                                                  @PathVariable EstadoTarea estado){
@@ -265,9 +275,10 @@ public class TareaController {
         TareaResumenDTO tareaResponse=genericoDTOConverter.convertirADTO(tarea,TareaResumenDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @PostMapping("/{id}/prioridad/{prioridad}")
     @PreAuthorize("hasAuthority('TAREA_PRIORIDAD_ACTUALIZAR')or hasAuthority('TAREA_USUARIO_PRIORIDAD_ACTUALIZAR' and" +
-            "@tareaRepository.existsByIdentificadorAndUsuarioUsername(#id,authentication.name))")
+            "@tareaRepository.existByIdentificadorAndUsername(#id,authentication.name))")
     public ResponseEntity<TareaResumenDTO> actualizarPrioridadTarea(@PathVariable Long id,
                                                                     @PathVariable PrioridadTarea prioridad){
         Tarea tarea=tareaService.establecerPrioridad(id,prioridad);

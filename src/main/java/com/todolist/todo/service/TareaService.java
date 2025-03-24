@@ -24,43 +24,52 @@ public class TareaService {
         this.tareaRepository = tareaRepository;
         this.usuarioRepository = usuarioRepository;
     }
+
     public List<Tarea> obtenerTodasTareasOrderBy(boolean esAsc){
         if(esAsc){
             return tareaRepository.findAllMainTareaPrioridadAsc();
         }
         return tareaRepository.findAllMainTareaPrioridadDesc();
     }
+
     public List<Tarea> obtenerTareasOrderBy(boolean esAsc,String username){
+        Usuario usuario=usuarioRepository.findByUsername(username).orElseThrow(()->new RecursoNoEncontradoException("No se encontró el usuario"));
         if(esAsc){
-            return tareaRepository.findByUsuarioUsernameOrderByPrioridadValorAsc(username);
+            return tareaRepository.findTareasAccesiblesAsc(usuario);
         }
-        return tareaRepository.findByUsuarioUsernameOrderByPrioridadValorDesc(username);
+        return tareaRepository.findTareasAccesiblesDesc(usuario);
     }
 
     public Tarea establecerPrioridad(Long id, PrioridadTarea prioridad){
         return tareaRepository.findById(id).
                 map(tarea->{
                     if(prioridad==null) throw new EntradaInvalidaException("Prioridad no encontrada, prioridades validas "+Arrays.toString(PrioridadTarea.values()));
-                    tarea.setPrioridadTarea(prioridad);
+                    tarea.setPrioridad(prioridad);
                     return tareaRepository.save(tarea);
                 }).
                 orElseThrow(()->new RecursoNoEncontradoException("No se ha encontrado la tarea con el id: "+id));
     }
+
     public List<Tarea> obtenerTodasTareas() {
         return tareaRepository.findAllMainTareas();
     }
+
     public List<Tarea> obtenerTareas(String username){
         Usuario usuario=usuarioRepository.findByUsername(username).orElseThrow(()->new RuntimeException("Usuario no encontrado"));
         return tareaRepository.findTareasAccesibles(usuario);
     }
+
     public Tarea obtenerTarea(Long id){
         return tareaRepository.findById(id).orElseThrow(()->new RecursoNoEncontradoException("No se encontró la tarea con el id "+id));
     }
+
+
     public Tarea guardarTarea(String username,Tarea tarea){
         Optional<Usuario> usuario=usuarioRepository.findByUsername(username);
         tarea.setUsuario(usuario.orElse(null));
         return tareaRepository.save(tarea);
     }
+
     public void eliminarTarea(Long id){
         if(!tareaRepository.existsById(id)) throw new RecursoNoEncontradoException("No se encontro la tarea con el id "+id);
         tareaRepository.deleteById(id);
@@ -69,10 +78,12 @@ public class TareaService {
     public Tarea compartirTarea(Long tareaId, Long usuarioId){
         Tarea tarea=tareaRepository.findById(tareaId).orElseThrow(()->new RecursoNoEncontradoException("Tarea con el id "+tareaId+" no encontrada"));
         Usuario usuario=usuarioRepository.findById(usuarioId).orElseThrow(()->new RecursoNoEncontradoException("Usuario con el id "+usuarioId+" no encontrado"));
+        if(tarea.getUsuario()==null) throw new RuntimeException("No se puede compartir una sub tarea");
         if(tarea.getUsuario().equals(usuario)) throw new RuntimeException("No puedes compartir contigo mismo");
         tarea.compartirCon(usuario);
         return tareaRepository.save(tarea);
     }
+
     public Tarea dejarCompartir(Long tareaId,Long usuarioId){
         Tarea tarea=tareaRepository.findById(tareaId).orElseThrow(()->new RecursoNoEncontradoException("Tarea con el id "+tareaId+" no encontrada"));
         Usuario usuario=usuarioRepository.findById(usuarioId).orElseThrow(()->new RecursoNoEncontradoException("Usuario con el id "+usuarioId+" no encontrado"));
@@ -101,13 +112,14 @@ public class TareaService {
                     t.setTitulo(subTarea.getTitulo()!=null?subTarea.getTitulo():t.getTitulo());
                     t.setDescripcion(subTarea.getDescripcion()!=null?subTarea.getDescripcion():t.getDescripcion());
                     t.setEstado(subTarea.getEstado()!=null?subTarea.getEstado():t.getEstado());
-                    t.setPrioridadTarea(subTarea.getPrioridad()!=null?subTarea.getPrioridad():t.getPrioridad());
+                    t.setPrioridad(subTarea.getPrioridad()!=null?subTarea.getPrioridad():t.getPrioridad());
                     break;
                 }
             }
             return tareaRepository.save(tarea);
         }).orElseThrow(()->new RecursoNoEncontradoException("No se encontró la tarea"));
     }
+
     public void eliminarsubTarea(Long idTarea, Long idSubTarea){
        tareaRepository.findByIdentificadorAndSubTareaIdentificador(idTarea,idSubTarea).
                 map(tarea -> {
@@ -118,15 +130,17 @@ public class TareaService {
                 }).
                 orElseThrow(()->new RecursoNoEncontradoException("No se encontro la tarea"));
     }
+
     public Tarea actualizarTarea(Long id,Tarea tarea){
         return tareaRepository.findById(id).map(_tarea->{
             _tarea.setTitulo(tarea.getTitulo()==null? _tarea.getTitulo():tarea.getTitulo());
             _tarea.setDescripcion(tarea.getDescripcion()==null? _tarea.getDescripcion():tarea.getDescripcion());
             _tarea.setEstado(tarea.getEstado()==null?_tarea.getEstado():tarea.getEstado());
-            _tarea.setPrioridadTarea(tarea.getPrioridad()==null?_tarea.getPrioridad():tarea.getPrioridad());
+            _tarea.setPrioridad(tarea.getPrioridad()==null?_tarea.getPrioridad():tarea.getPrioridad());
             return tareaRepository.save(_tarea);
         }).orElseThrow(()-> new RecursoNoEncontradoException("No se encontro la tarea con el id "+id+" para actualizar los datos") );
     }
+
     public Tarea actualizarEstado(Long id, EstadoTarea estado){
         Optional<Tarea> tarea = tareaRepository.findById(id);
         return tarea.map(_tarea->{
@@ -145,6 +159,7 @@ public class TareaService {
             return tareaRepository.save(_tarea);
         }).orElseThrow(()->new RecursoNoEncontradoException("No se encontro la tarea"));
     }
+
     public List<Tarea> obtenerTareasPorVencer(Integer dias){
         LocalDateTime ahora=LocalDateTime.now();
         LocalDateTime limite=ahora.plusDays(dias);
@@ -154,8 +169,10 @@ public class TareaService {
     public List<Tarea> obtenerTareasPorVencerPorUsuario(String username, int dias){
         LocalDateTime ahora=LocalDateTime.now();
         LocalDateTime limite=ahora.plusDays(dias);
-        return tareaRepository.findTareasAVencerPorUsuario(username,ahora,limite);
+        Usuario usuario=usuarioRepository.findByUsername(username).orElseThrow(()->new RecursoNoEncontradoException("No se encontro la tarea"));
+        return tareaRepository.findTareasAVencerPorUsuario(usuario,ahora,limite);
     }
+
     public boolean existeTarea(Long id){
         return tareaRepository.existsById(id);
     }

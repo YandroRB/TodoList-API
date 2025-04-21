@@ -48,6 +48,6 @@ cd tu_repositorio
   MAIL_PASSWORD=tu_contraseña_de_aplicación
   ```
 - Ejecuta mvn spring-boot:run
-####Podman o Docker
+#### Podman o Docker
 - Si es por podman o docker configurar las variables en el archivo podman-compose.yml
 - Ejecutar podman-compose up --build

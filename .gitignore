@@ -41,6 +41,11 @@ logs/
 *.jar
 *.ear
 
+# Archivos de configuración de Spring Boot
+application.properties
+application.yml
+application-*.properties
+application-*.yml
 
 # Archivos de configuración de pruebas
 test-output/
@@ -52,6 +57,7 @@ docker-compose.override.yml
 # Archivos de configuración de seguridad
 .env
 .env.*
+
 
 # Archivos de configuración de Git
 .git/

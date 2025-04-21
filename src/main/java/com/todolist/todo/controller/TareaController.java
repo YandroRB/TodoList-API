@@ -1,5 +1,6 @@
 package com.todolist.todo.controller;
 
+import com.todolist.todo.documentation.TareaControllerDocumentation;
 import com.todolist.todo.dto.request.TareaRecordatorioRequestDTO;
 import com.todolist.todo.dto.request.TareaRequestDTO;
 
@@ -11,36 +12,40 @@ import com.todolist.todo.exception.EntradaInvalidaException;
 
 import com.todolist.todo.model.Tarea;
 import com.todolist.todo.service.CategoriaService;
+import com.todolist.todo.service.IEService;
 import com.todolist.todo.service.TareaService;
 import com.todolist.todo.utility.GenericoDTOConverter;
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/tareas")
-public class TareaController {
+public class TareaController implements TareaControllerDocumentation {
 
     private final TareaService tareaService;
     private final GenericoDTOConverter genericoDTOConverter;
     private final CategoriaService categoriaService;
+    private final IEService ieService;
 
-    public TareaController(TareaService tareaService, GenericoDTOConverter genericoDTOConverter, CategoriaService categoriaService) {
-        this.tareaService = tareaService;
-        this.genericoDTOConverter = genericoDTOConverter;
-        this.categoriaService = categoriaService;
-    }
 
     @GetMapping
     @PreAuthorize("hasAuthority('USUARIO_TAREA_LEER')")
@@ -58,6 +63,36 @@ public class TareaController {
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
     }
 
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('USUARIO_TAREA_EXPORTAR')")
+    public ResponseEntity<byte[]> exportarTareas(Authentication authentication) {
+        String username = authentication.getName();
+        byte[] bytes= ieService.exportarTareaToJson(username);
+        String filename="tareas.json",contentType="application/json";
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment;filename\""+filename+"\"").contentType(MediaType.parseMediaType(contentType))
+                .body(bytes);
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasAuthority('USUARIO_TAREA_IMPORTAR')")
+    public ResponseEntity<?> importarTareas(@RequestParam("file") MultipartFile file, Authentication authentication){
+
+        if(file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El archivo esta vacio"));
+        }
+            String username = authentication.getName();
+            try {
+                List<Tarea> tareas = ieService.importarTareaFromJson(file.getBytes(), username);
+                Map<String,Object> response=new HashMap<>();
+                response.put("mensaje","Se importaron "+tareas.size()+" correctamente");
+                response.put("cantidad", tareas.size());
+                return ResponseEntity.ok(response);
+            } catch (IOException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Error al importar las tareas" + e.getMessage()));
+            }
+
+    }
     @GetMapping("/todas")
     @PreAuthorize("hasAuthority('TAREA_TODAS_LEER')")
     public List<TareaResponseDTO> obtenerTodaTareas(@RequestParam(required = false) String sortby){
@@ -89,17 +124,19 @@ public class TareaController {
         if(categoria ==null) throw new EntradaInvalidaException("El parametro 'categoria' no puede ser nulo o vacio");
         List<Tarea> tareas=categoriaService.obtenerTareasPorCategoria(categoria);
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
-
     }
 
     @GetMapping("/compartidas")
     @PreAuthorize("hasAuthority('TAREAS_COMPARTIDAS_LEER')")
-    public List<TareaResponseDTO> obtenerTareasCompartidas(Authentication authentication) {
+    public List<TareaResponseDTO> obtenerTareasCompartidas(Authentication authentication){
         String username = authentication.getName();
         List<Tarea> tareas = tareaService.obtenerTareasCompartidas(username);
         return genericoDTOConverter.convertirListADTO(tareas, TareaResponseDTO.class);
     }
 
+    /*
+    * Verificar si es compatible con la funcion de compartir la tarea
+    * */
     @DeleteMapping("/{id_tarea}/categorias/{id_categoria}")
     @PreAuthorize("hasAuthority('TAREA_CATEGORIA_ELIMINAR') or hasAuthority('TAREA_USUARIO_CATEGORIA_ELIMINAR') and " +
             "@tareaRepository.existsByIdentificadorAndCategoriasIdentificadorAndUsuarioUsername(#id_tarea,#id_categoria," +
@@ -109,6 +146,7 @@ public class TareaController {
         TareaResponseDTO tareaResponse= genericoDTOConverter.convertirADTO(tarea, TareaResponseDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
 
     @DeleteMapping("/{id_tarea}/subtarea/{id_sub}")
     @PreAuthorize("hasAuthority('TAREA_SUBTAREA_ELIMINAR') or hasAuthority('TAREA_USUARIO_SUBTAREA_ELIMINAR' and" +
@@ -153,6 +191,8 @@ public class TareaController {
             throw new EntradaInvalidaException("Error al actualizar la tarea: " + err);
         }
     }
+
+    //Revisar compatibilidad con el tema de compartir tarea
     @PostMapping("/{id_tarea}/categorias/{id_categoria}")
     @PreAuthorize("hasAuthority('TAREA_ASIGNAR_CATEGORIA') or hasAuthority('TAREA_USUARIO_ASIGNAR_CATEGORIA') and " +
             "@tareaRepository.existsByIdentificadorAndCategoriasIdentificadorAndUsuarioUsername(#id_tarea,#id_categoria," +
@@ -162,6 +202,7 @@ public class TareaController {
         TareaResponseDTO tareaResponse= genericoDTOConverter.convertirADTO(tarea, TareaResponseDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @PostMapping("/{tareaId}/compartir/{usuarioId}")
     @PreAuthorize("hasAuthority('TAREA_COMPARTIR_ESCRIBIR') or hasAuthority('TAREA_COMPARTIR_USUARIO_ESCRIBIR') and " +
             "@tareaRepository.existsByIdentificadorAndUsuarioUsername(#tareaId,authentication.name)")
@@ -194,6 +235,7 @@ public class TareaController {
         TareaResumenDTO tareaResponse=genericoDTOConverter.convertirADTO(tareaGuardar,TareaResumenDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @PutMapping("/{id}/fechalimite")
     @PreAuthorize("hasAuthority('TAREA_ESTABLECER_RECORDATORIO_EDITAR') or hasAuthority('TAREA_ESTABLECER_USUARIO_RECORDATORIO_EDITAR')")
     public ResponseEntity<TareaResponseDTO> establecerRecordatorio(@PathVariable Long id,
@@ -235,6 +277,7 @@ public class TareaController {
             throw new EntradaInvalidaException("Error al hacer actualizacion parcial de la tarea: " + err);
         }
     }
+
     @GetMapping("/recordatorio")
     @PreAuthorize("hasAuthority('TAREA_OBTENER_RECORDATORIO_LEER') or hasAuthority('TAREA_OBTENER_RECORDATORIO_USUARIO_LEER')")
     public ResponseEntity<List<TareaResponseDTO>> obtenerTareasRecordatorio(@RequestParam (defaultValue = "1") Integer dias,
@@ -249,6 +292,7 @@ public class TareaController {
         List<TareaResponseDTO> tareaResponse=genericoDTOConverter.convertirListADTO(tareasUsuario,TareaResponseDTO.class);
         return ResponseEntity.ok(tareaResponse);
     }
+
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('TAREA_PARCIAL_ACTUALIZAR') or hasAuthority('TAREA_USUARIO_PARCIAL_ACTUALIZAR') and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id," +
             "authentication.name)")

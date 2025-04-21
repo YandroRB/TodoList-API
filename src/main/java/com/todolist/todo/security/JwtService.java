@@ -9,13 +9,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${jwt.secret:defaultSecretKey12345678901234567890}")
+    @Value("${jwt.secret:defaultSecretKey12345678901234567890ABCD@_453#ASDAS#7878EXTRA}")
     private String secretKey;
 
     @Value("${jwt.expiration:86400000}")
@@ -33,7 +34,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+        byte[] keyBytes = Base64.getEncoder().encode(secretKey.getBytes());
         return Keys.hmacShaKeyFor(keyBytes);
     }
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

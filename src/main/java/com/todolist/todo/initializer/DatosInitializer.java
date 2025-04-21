@@ -104,6 +104,10 @@ public class DatosInitializer implements CommandLineRunner {
                 "Se asegura que la tarea le pertenezca y le quita la tarea al usuario");
         permisoService.crearObtenerPermiso("TAREAS_COMPARTIDAS_LEER",
                 "Obtiene las tareas compartidas con el usuario");
+        permisoService.crearObtenerPermiso("USUARIO_TAREA_EXPORTAR",
+                "Permite exportar las tareas en un archivo JSON");
+        permisoService.crearObtenerPermiso("USUARIO_TAREA_IMPORTAR",
+                "Permite importar las tareas desde un archivo JSON");
         //Categoria
         permisoService.crearObtenerPermiso("CATEGORIA_LEER",
                 "Obtiene las categorias del usuario antentificado");

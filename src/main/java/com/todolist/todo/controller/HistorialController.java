@@ -1,5 +1,6 @@
 package com.todolist.todo.controller;
 
+import com.todolist.todo.documentation.HistorialControllerDocumentation;
 import com.todolist.todo.dto.response.HistorialResponseDTO;
 import com.todolist.todo.service.HistorialService;
 import com.todolist.todo.service.TareaService;
@@ -16,9 +17,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tareas")
 @RequiredArgsConstructor
-public class HistorialController {
+public class HistorialController implements HistorialControllerDocumentation {
     private final HistorialService historialService;
     private final TareaService tareaService;
+
+    @Override
     @GetMapping("/{tareaId}/historial")
     @PreAuthorize("hasAuthority('HISTORIAL_TAREA') or hasAuthority('HISTORIAL_USUARIO_TAREA')and @tareaRepository." +
             "existsByIdentificadorAndUsuarioUsername(#tareaId,authentication.name)")

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/todo
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - JWT_SECRET=pK7@Lm9$zXv2Ej5#Qw8RtY3*Gb6Fn4!Hd0Cs1A
+      - JWT_EXPIRATION=900000
+      - JWT_EXPIRATION_REFRESH=604800000
+      - MAIL_ADDRESS=mastingrb@gmail.com
+      - MAIL_PASSWORD=yursqimqrqdmgajm
+    networks:
+      - todo-network
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=todo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+
+volumes:
+  db-data:

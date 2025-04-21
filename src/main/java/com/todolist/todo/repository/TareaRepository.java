@@ -14,6 +14,9 @@ public interface TareaRepository extends JpaRepository<Tarea,Long> {
     @Query("SELECT t FROM Tarea t WHERE t.nivel=0")
     List<Tarea> findAllMainTareas();
 
+    @Query("SELECT t FROM Tarea t where t.nivel=0 AND t.usuario.username=:username")
+    List<Tarea> findALLMainTareasUsuario(@Param("username") String username);
+
     boolean existsByIdentificadorAndUsuarioUsername(Long identificador, String username);
 
     @Query("SELECT CASE WHEN COUNT(t)>0 THEN true ELSE false END " +
@@ -23,7 +26,6 @@ public interface TareaRepository extends JpaRepository<Tarea,Long> {
 
     List<Tarea> findByCategoriasNombre(String nombre);
 
-    List<Tarea> findByCategoriasNombreLike(String nombre);
 
     @Query("SELECT t FROM Tarea t where t.nivel=0 order by t.prioridadValor asc")
     List<Tarea> findAllMainTareaPrioridadAsc();

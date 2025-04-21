@@ -1,5 +1,6 @@
 package com.todolist.todo.controller;
 
+import com.todolist.todo.documentation.UsuarioControllerDocumentation;
 import com.todolist.todo.dto.request.TareaRequestDTO;
 import com.todolist.todo.dto.request.UsuarioRequestDTO;
 import com.todolist.todo.dto.response.UsuarioResponseDTO;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
-public class UsuarioController {
+public class UsuarioController implements UsuarioControllerDocumentation {
 
     private final UsuarioService usuarioService;
     private final GenericoDTOConverter genericoDTOConverter;
@@ -37,12 +38,14 @@ public class UsuarioController {
         Usuario usuario = usuarioService.obtenerUsuario(authentication.getName());
         return genericoDTOConverter.convertirADTO(usuario,UsuarioResponseDTO.class);
     }
+
     @GetMapping("/todos")
     @PreAuthorize("hasAuthority('USUARIO_TODOS_LEER')")
     public List<UsuarioResponseDTO> obtenerTodosUsuarios(){
         List<Usuario> usuarios=usuarioService.obtenerTodosUsuarios();
         return genericoDTOConverter.convertirListADTO(usuarios,UsuarioResponseDTO.class);
     }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIO_ID_LEER')")
     public ResponseEntity<UsuarioResponseDTO> obtenerUsuarioPorId(@PathVariable Long id) {
@@ -50,6 +53,7 @@ public class UsuarioController {
         UsuarioResponseDTO usuarioResponse= genericoDTOConverter.convertirADTO(usuario, UsuarioResponseDTO.class);
         return ResponseEntity.ok(usuarioResponse);
     }
+
     @PostMapping
     @PreAuthorize("hasAuthority('USUARIO_CREAR')")
     public ResponseEntity<UsuarioResponseDTO> guardarUsuario(@Valid @RequestBody UsuarioRequestDTO usuario, BindingResult result) {
@@ -114,6 +118,7 @@ public class UsuarioController {
         UsuarioResponseDTO usuarioResponse = genericoDTOConverter.convertirADTO(usuarioActualizar, UsuarioResponseDTO.class);
         return new ResponseEntity<>(usuarioResponse, HttpStatus.OK);
     }
+
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIO_ID_PARCIAL_ACTUALIZAR')")
     public ResponseEntity<UsuarioResponseDTO> actualizarUsuarioIDParcial(@PathVariable Long id,
@@ -166,7 +171,7 @@ public class UsuarioController {
         Map<String,Object> respuesta =usuarioService.eliminarTarea(id_usuario,id_tarea);
         return new ResponseEntity<>(respuesta,HttpStatus.OK);
     }
-    /*
+/*
     @DeleteMapping("/tareas/{id_tarea}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<?> eliminarTarea(@PathVariable Long id_tarea, Authentication authentication){

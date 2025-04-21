@@ -1,5 +1,6 @@
 package com.todolist.todo.controller;
 
+import com.todolist.todo.documentation.CategoriaControllerDocumentation;
 import com.todolist.todo.dto.request.CategoriaRequestDTO;
 import com.todolist.todo.dto.response.CategoriaResumeDTO;
 import com.todolist.todo.exception.EntradaInvalidaException;
@@ -7,6 +8,7 @@ import com.todolist.todo.model.Categoria;
 import com.todolist.todo.service.CategoriaService;
 import com.todolist.todo.utility.GenericoDTOConverter;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,14 +21,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categorias")
-public class CategoriaController {
+@RequiredArgsConstructor
+public class CategoriaController implements CategoriaControllerDocumentation {
     private final CategoriaService categoriaService;
     private final GenericoDTOConverter genericoDTOConverter;
 
-    public CategoriaController(CategoriaService categoriaService, GenericoDTOConverter genericoDTOConverter) {
-        this.categoriaService = categoriaService;
-        this.genericoDTOConverter = genericoDTOConverter;
-    }
+
+    @Override
     @GetMapping
     @PreAuthorize("hasAuthority('CATEGORIA_LEER')")
     public List<CategoriaResumeDTO> obtenerCategoriasPorUsuario(Authentication authentication) {
@@ -34,6 +35,8 @@ public class CategoriaController {
         List<Categoria> categorias= categoriaService.obtenerCategoriasPorUsuario(username);
         return genericoDTOConverter.convertirListADTO(categorias,CategoriaResumeDTO.class);
     }
+
+    @Override
     @GetMapping("/{id_tarea}")
     @PreAuthorize("hasAuthority('CATEGORIA_TAREA_LEER') or hasAuthority('CATEGORIA_TAREA_USUARIO_LEER') and @tareaRepository.existsByIdentificadorAndUsuarioUsername(#id_tarea," +
             "authentication.name)")
@@ -41,6 +44,8 @@ public class CategoriaController {
         List<Categoria> categorias=categoriaService.obtenerCategoriasTarea(id_tarea);
         return genericoDTOConverter.convertirListADTO(categorias,CategoriaResumeDTO.class);
     }
+
+    @Override
     @DeleteMapping("/{id_categoria}")
     @PreAuthorize("hasAuthority('CATEGORIA_ID_ELIMINAR') or hasAuthority('CATEGORIA_ID_USUARIO_ELIMINAR' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
             "authentication.name))")
@@ -48,6 +53,8 @@ public class CategoriaController {
         categoriaService.eliminarCategoria(id_categoria);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Override
     @PutMapping("/{id_categoria}")
     @PreAuthorize("hasAuthority('CATEGORIA_ID_ACTUALIZAR') or hasAuthority('CATEGORIA_ID_USUARIO_ACTUALIZAR' and @categoriaRepository.existsByIdentificadorAndUsuarioUsername(#id_categoria," +
             "authentication.name))")
@@ -65,6 +72,8 @@ public class CategoriaController {
         CategoriaResumeDTO categoriaResponse=genericoDTOConverter.convertirADTO(categoriaResult,CategoriaResumeDTO.class);
         return new ResponseEntity<>(categoriaResponse,HttpStatus.OK);
     }
+
+    @Override
     @PostMapping
     @PreAuthorize("hasAuthority('CATEGORIA_CREAR')")
     public ResponseEntity<CategoriaResumeDTO> guardarCategoria(Authentication authentication,
@@ -80,6 +89,6 @@ public class CategoriaController {
         Categoria categoriaRequest=genericoDTOConverter.convertirAEntidad(categoria,Categoria.class);
         Categoria categoriaResult=categoriaService.guardarCategoria(username,categoriaRequest);
         CategoriaResumeDTO categoriaResponse=genericoDTOConverter.convertirADTO(categoriaResult,CategoriaResumeDTO.class);
-        return new ResponseEntity<>(categoriaResponse,HttpStatus.OK);
+        return new ResponseEntity<>(categoriaResponse,HttpStatus.CREATED);
     }
 }

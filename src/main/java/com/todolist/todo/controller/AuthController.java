@@ -1,5 +1,6 @@
 package com.todolist.todo.controller;
 
+import com.todolist.todo.documentation.AuthControllerDocumentation;
 import com.todolist.todo.dto.request.LoginRequestDTO;
 import com.todolist.todo.dto.request.RegistroUsuarioRequestDTO;
 import com.todolist.todo.dto.request.TokenRefreshRequestDTO;
@@ -9,6 +10,12 @@ import com.todolist.todo.exception.EntradaInvalidaException;
 import com.todolist.todo.model.Usuario;
 import com.todolist.todo.service.AuthService;
 import com.todolist.todo.utility.GenericoDTOConverter;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
@@ -26,12 +33,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+
+public class AuthController implements AuthControllerDocumentation {
     private final AuthService authService;
     private final GenericoDTOConverter genericoDTOConverter;
 
+    @Override
     @PostMapping("/registro")
-    public ResponseEntity<UsuarioResumenDTO> registrarUsuario(@Valid @RequestBody RegistroUsuarioRequestDTO registroDTO, BindingResult result) {
+    public ResponseEntity<UsuarioResumenDTO> registrarUsuario(@Valid @RequestBody RegistroUsuarioRequestDTO registroDTO
+            , BindingResult result) {
         if(result.hasErrors()) {
             String err=result.getFieldErrors().stream()
                     .map(error->"Campo '"+error.getField()+"' : "+error.getDefaultMessage())
@@ -45,6 +55,8 @@ public class AuthController {
         return new ResponseEntity<>(usuarioResponse, HttpStatus.CREATED);
 
     }
+
+    @Override
     @PostMapping("/login")
     public ResponseEntity<JwtResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginDTO, BindingResult result){
         if(result.hasFieldErrors()){
@@ -57,6 +69,8 @@ public class AuthController {
         return new ResponseEntity<>(jwtResponseDTO, HttpStatus.OK);
 
     }
+
+    @Override
     @PostMapping("/refresh")
     public ResponseEntity<JwtResponseDTO> refresh(@Valid @RequestBody TokenRefreshRequestDTO refreshDTO, BindingResult result){
         if(result.hasErrors()){

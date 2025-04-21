@@ -1,33 +1,70 @@
-HELP.md
+# Archivos y carpetas generados por Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Archivos y carpetas generados por Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.gradle-cache/
+*.lock
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+# Archivos de configuración del IDE
+.idea/
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+*.iws
 .vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Archivos de logs
+*.log
+logs/
+*.out
+
+# Archivos de configuración de herramientas
+*.class
+*.war
+*.jar
+*.ear
+
+
+# Archivos de configuración de pruebas
+test-output/
+surefire-reports/
+
+# Archivos de configuración de Docker
+docker-compose.override.yml
+
+# Archivos de configuración de seguridad
+.env
+.env.*
+
+# Archivos de configuración de Git
+.git/
+.gitignore
+
+# Archivos de configuración de cobertura de código
+jacoco.exec
+coverage/
+
+# Archivos de configuración de IntelliJ
+out/
+
+# Archivos de configuración de Eclipse
+*.classpath
+*.project
+*.settings/

@@ -38,7 +38,5 @@ public class SwaggerConfig {
                                 .bearerFormat("JWT")
                                 .in(SecurityScheme.In.HEADER)
                                 .name("Authorization")))
-                .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Servidor local")));
     }
 }

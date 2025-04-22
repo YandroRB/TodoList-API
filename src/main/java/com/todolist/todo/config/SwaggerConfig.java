@@ -37,6 +37,6 @@ public class SwaggerConfig {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                                 .in(SecurityScheme.In.HEADER)
-                                .name("Authorization")))
+                                .name("Authorization")));
     }
 }
